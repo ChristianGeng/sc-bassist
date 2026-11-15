@@ -1,0 +1,4 @@
+.sclang_conf.local.yaml
+/out/
+*.png
+!docs/*.png
