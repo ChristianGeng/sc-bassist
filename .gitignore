@@ -2,3 +2,4 @@
 /out/
 *.png
 !docs/*.png
+.claude/
