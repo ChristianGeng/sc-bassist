@@ -55,16 +55,28 @@
 	};
 };
 
-// Internal clock: ticks at the manual BPM; only plays in manual mode.
+// Internal clock. Manual mode: ticks at the manual BPM. Follow mode:
+// free-runs while the beat tracker has not (or no longer) locked, so
+// the bass starts with the music instead of after BeatTrack's warm-up;
+// it uses the last detected tempo, else the manual BPM.
+~sb.freeRunning = { |self|
+	var st = self.state;
+	(self.getParam(\sync) == 0)
+	and: { (Main.elapsedTime - st[\lastDetected]) > 2 }
+	and: { st[\energy] >= self.getParam(\gate).max(0.05) }
+};
+
 ~sb.startClock = { |self|
 	self.clockTask !? { |t| t.stop };
 	self.clockTask = Task {
 		loop {
-			var dur = 60 / self.getParam(\bpm);
-			if(self.getParam(\sync) > 0) {
-				self.state[\bpm] = self.getParam(\bpm);
-				self.onBeat(dur);
-			};
+			var st = self.state, manual = self.getParam(\sync) > 0;
+			var bpm = if(manual or: { st[\bpm].isNil or: { st[\bpm] <= 0 } }) {
+				self.getParam(\bpm)
+			} { st[\bpm] };
+			var dur = 60 / bpm;
+			if(manual) { st[\bpm] = bpm };
+			if(manual or: { self.freeRunning }) { self.onBeat(dur) };
 			dur.wait;
 		}
 	}.play(SystemClock);

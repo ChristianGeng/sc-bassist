@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: shellcheck
         run: shellcheck run.sh scripts/*.sh
       - name: whitespace errors
@@ -35,9 +35,10 @@ jobs:
     timeout-minutes: 20
     env:
       SB_NO_PWJACK: "1"
+      SB_COVERAGE_KEEP: "1"
       SB_TEST_OUT: ${{ github.workspace }}/out
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install SuperCollider, JACK and ffmpeg
         run: |
           sudo apt-get update -q

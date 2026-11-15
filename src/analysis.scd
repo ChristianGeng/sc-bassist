@@ -67,6 +67,7 @@
 	var st = self.state;
 	if(bps > 0.5 and: { bps < 5 }) {
 		if(self.getParam(\sync) == 0) {
+			st[\lastDetected] = Main.elapsedTime;
 			st[\bpm] = self.theory.foldBpm(bps * 60);
 			self.onBeat(1 / bps);
 		};

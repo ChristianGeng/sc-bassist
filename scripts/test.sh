@@ -32,7 +32,8 @@ run_sclang() { # name file timeout
 }
 
 status=0
-rm -f "$OUT"/coverage-*.txt
+# CI runs one suite per step: SB_COVERAGE_KEEP=1 merges over the steps
+if [[ "${SB_COVERAGE_KEEP:-}" != 1 ]]; then rm -f "$OUT"/coverage-*.txt; fi
 for s in "${suites[@]}"; do
 	case "$s" in
 		compile) run_sclang compile "$ROOT/tests/compile.scd" 60 || status=1 ;;
