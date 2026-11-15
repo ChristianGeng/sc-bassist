@@ -36,7 +36,12 @@
 	(self.getParam(\density) + (self.state[\energy] * self.getParam(\react))).clip(0, 1)
 };
 
+// After shutdown (grp = nil) late scheduled beats do nothing.
 ~sb.onBeat = { |self, beatDur|
+	if(self.grp.notNil) { self.playBeat(beatDur) };
+};
+
+~sb.playBeat = { |self, beatDur|
 	var st = self.state, notes, manual = self.getParam(\sync) > 0;
 	st[\beats] = st[\beats] + 1;
 	st[\beatDur] = beatDur;
