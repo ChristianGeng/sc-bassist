@@ -2,7 +2,7 @@
 var sb = ~sb, st = ~sb.state, t = ~t, th = ~sb.theory, s = Server.default;
 t.verbose = true; // print measured values in CI logs
 Routine {
-	var notes, chords = List[], tmp, mp3, srcMax = 0, bassMax = 0, lockWait, beats0, notes0;
+	var notes, chords = List[], tmp, mp3, srcMax = 0, bassMax = 0, lockWait, beats0, notes0, iv, periods, stable = false, windowStart;
 	t.check(\boot, {
 		t.ok(s.serverRunning, "server runs");
 		t.eq(sb.sourceName, "demo groove", "demo groove is the default source");
@@ -10,15 +10,21 @@ Routine {
 	// the bass starts with the music, before the beat tracker has locked
 	2.5.wait;
 	t.ok(st[\notes] > 0, "plays during beat-tracker warm-up (% notes in 2.5 s)".format(st[\notes]));
-	// BeatTrack needs a few seconds to lock (longer on some machines):
-	// wait for it, then measure over a fixed window
+	// BeatTrack wanders for 5-10 s (120 -> 150 -> 205 BPM ticks on this
+	// groove) before it settles: wait until its beat period has been
+	// stable for 5 s, then measure over a fixed window
 	lockWait = 0;
-	while { (Main.elapsedTime - st[\lastDetected]) > 1 and: { lockWait < 20 } } {
+	periods = List[];
+	while { stable.not and: { lockWait < 25 } } {
 		0.25.wait;
 		lockWait = lockWait + 0.25;
+		periods.add(st[\detectedDur] ? 0);
+		if(periods.size > 20) { periods.removeAt(0) };
+		stable = periods.size == 20 and: { periods.minItem > 0 }
+			and: { (periods.maxItem / periods.minItem) < 1.03 };
 	};
-	t.ok((Main.elapsedTime - st[\lastDetected]) <= 1, "beat tracker locks within 20 s (% s)".format(lockWait));
-	1.wait;
+	t.ok(stable, "beat tracker settles within 25 s (% s)".format(lockWait));
+	windowStart = Main.elapsedTime;
 	beats0 = st[\beats];
 	notes0 = st[\notes];
 	// collect detected chords and peak levels while the demo plays
@@ -37,6 +43,14 @@ Routine {
 		t.ok(st[\features] > 100, "feature frames arrive (%)".format(st[\features]));
 		t.ok(st[\energy] > 0.2, "input energy is seen (%)".format(st[\energy].round(0.01)));
 		t.ok((st[\beats] - beats0) > 8, "beats keep coming (% in 8 s)".format(st[\beats] - beats0));
+		// from warm-up through the lock: no doubled beats
+		iv = st[\beatTimes].select { |x| x >= windowStart }.asArray.differentiate.drop(1);
+		t.ok((iv.median - (60 / 104)).abs < 0.06,
+			"the bass plays at the groove's tempo, not a multiple (beat period % s, want %)"
+			.format(iv.median.round(0.001), (60 / 104).round(0.001)));
+		t.ok(iv.minItem > (iv.median * 0.4),
+			"no doubled beats once settled (shortest % s, median % s)"
+			.format(iv.minItem.round(0.001), iv.median.round(0.001)));
 		t.ok(st[\bpm].notNil and: { (st[\bpm] - 104).abs < 6 },
 			"tempo is about 104 BPM (%)".format(st[\bpm] !? (_.round(0.1))));
 		t.ok(chords.size > 4, "chords are detected (%)".format(chords.collect(th.keyName(_)).asSet));

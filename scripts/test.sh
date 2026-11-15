@@ -44,7 +44,7 @@ for s in "${suites[@]}"; do
 		compile) run_sclang compile "$ROOT/tests/compile.scd" 60 || status=1 ;;
 		unit) run_sclang unit "$ROOT/tests/unit.scd" 60 || status=1 ;;
 		ui) run_sclang ui "$ROOT/tests/ui.scd" 60 || status=1 ;;
-		integration) run_sclang integration "$ROOT/tests/integration.scd" 120 || status=1 ;;
+		integration) run_sclang integration "$ROOT/tests/integration.scd" 150 || status=1 ;;
 		*) echo "unknown suite $s" >&2; status=2 ;;
 	esac
 done

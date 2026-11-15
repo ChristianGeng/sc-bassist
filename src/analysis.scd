@@ -64,12 +64,22 @@
 // BeatTrack tempo is in beats per second. The tick interval drives the
 // player; the display shows it folded into 70-180 BPM.
 ~sb.onBeatDetected = { |self, bps|
-	var st = self.state;
+	var st = self.state, now = Main.elapsedTime, plan, skip, onTick;
 	if(bps > 0.5 and: { bps < 5 }) {
-		if(self.getParam(\sync) == 0) {
-			st[\lastDetected] = Main.elapsedTime;
-			st[\bpm] = self.theory.foldBpm(bps * 60);
-			self.onBeat(1 / bps);
+		plan = self.theory.tickPlan(bps);
+		st[\ticks] = st[\ticks] + 1;
+		onTick = ((st[\ticks] + self.tickPhase) % plan[\every]) == 0;
+		st[\lastDetected] = now;
+		st[\detectedDur] = plan[\dur];
+		if(self.getParam(\sync) == 0 and: { onTick }) {
+			skip = self.theory.skipDetected(now, st[\lastBeat], st[\lastWasFree] == true, plan[\dur]);
+			st[\bpm] = 60 / plan[\dur];
+			st[\lastWasFree] = false;
+			// a free-running beat just played this beat: do not double it
+			if(skip.not) { self.onBeat(plan[\dur]) };
+			(plan[\perTick] - 1).do { |i|
+				SystemClock.sched(plan[\dur] * (i + 1), { self.onBeat(plan[\dur]); nil });
+			};
 		};
 	};
 };

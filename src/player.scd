@@ -41,6 +41,8 @@
 	st[\beats] = st[\beats] + 1;
 	st[\beatDur] = beatDur;
 	st[\lastBeat] = Main.elapsedTime;
+	st[\beatTimes].add(st[\lastBeat]);
+	if(st[\beatTimes].size > 64) { st[\beatTimes].removeAt(0) };
 	st[\beatInBar] = (st[\beats] + self.barShift) % 4;
 	self.updateDrone;
 	if(self.getParam(\bassOn) > 0 and: { manual or: { st[\energy] >= self.getParam(\gate) } }) {
@@ -57,27 +59,33 @@
 
 // Internal clock. Manual mode: ticks at the manual BPM. Follow mode:
 // free-runs while the beat tracker has not (or no longer) locked, so
-// the bass starts with the music instead of after BeatTrack's warm-up;
-// it uses the last detected tempo, else the manual BPM.
-~sb.freeRunning = { |self|
-	var st = self.state;
-	(self.getParam(\sync) == 0)
-	and: { (Main.elapsedTime - st[\lastDetected]) > 2 }
-	and: { st[\energy] >= self.getParam(\gate).max(0.05) }
+// the bass starts with the music instead of after BeatTrack's warm-up.
+// It uses the last detected beat period (not the folded display tempo),
+// else the manual BPM, and polls so it fires only when a beat is due.
+~sb.freeRunPeriod = { |self|
+	self.state[\detectedDur] ?? { 60 / self.getParam(\bpm) }
 };
 
 ~sb.startClock = { |self|
 	self.clockTask !? { |t| t.stop };
 	self.clockTask = Task {
 		loop {
-			var st = self.state, manual = self.getParam(\sync) > 0;
-			var bpm = if(manual or: { st[\bpm].isNil or: { st[\bpm] <= 0 } }) {
-				self.getParam(\bpm)
-			} { st[\bpm] };
-			var dur = 60 / bpm;
-			if(manual) { st[\bpm] = bpm };
-			if(manual or: { self.freeRunning }) { self.onBeat(dur) };
-			dur.wait;
+			var st = self.state, now = Main.elapsedTime, period;
+			if(self.getParam(\sync) > 0) {
+				period = 60 / self.getParam(\bpm);
+				st[\bpm] = self.getParam(\bpm);
+				st[\lastWasFree] = false;
+				self.onBeat(period);
+				period.wait;
+			} {
+				period = self.freeRunPeriod;
+				if(self.theory.freeRunDue(now, st[\lastBeat], st[\lastDetected], period,
+					st[\energy], self.getParam(\gate))) {
+					st[\lastWasFree] = true;
+					self.onBeat(period);
+				};
+				0.005.wait;
+			};
 		}
 	}.play(SystemClock);
 };
@@ -95,8 +103,14 @@
 	};
 };
 
-// Move beat 1 of the bar (BeatTrack knows beats, not bars).
-~sb.shiftDownbeat = { |self| self.barShift = (self.barShift + 1) % 4 };
+// Move beat 1 of the bar (BeatTrack knows beats, not bars). After four
+// presses it also moves to the other tick, for a tracker locked at
+// double tempo whose kept ticks fall on the offbeats.
+~sb.tickPhase = 0;
+~sb.shiftDownbeat = { |self|
+	self.barShift = (self.barShift + 1) % 4;
+	if(self.barShift == 0) { self.tickPhase = (self.tickPhase + 1) % 2 };
+};
 
 ~sb.updateAutoStyle = { |self|
 	var st = self.state, th = self.theory;

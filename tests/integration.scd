@@ -8,4 +8,4 @@ var root = "SB_ROOT".getenv;
 "SB_AFTER".setenv(root +/+ "tests/integration_body.scd");
 (root +/+ "main.scd").load;
 // safety net if the server never comes up
-AppClock.sched(110, { "integration: timeout".postln; 1.exit; nil });
+AppClock.sched(130, { "integration: timeout".postln; 1.exit; nil });

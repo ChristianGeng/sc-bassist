@@ -194,8 +194,12 @@ and uploads logs and the UI screenshot.
 - Chord detection uses major/minor triads from a chroma filter bank:
   good on clear pop, funk and rock, unsteady on dense or jazzy harmony
   (use *lock chord*). Drums leak into the chroma (#12).
-- BeatTrack needs a few seconds to lock and knows no bar position
-  (*Shift beat 1*).
+- BeatTrack needs 5–10 seconds to settle (on the demo it wanders from
+  120 to 150 to double tempo before it locks). Meanwhile the bass
+  free-runs on the internal clock, so it starts with the music.
+  Double- and half-tempo locks are folded into 70–180 BPM.
+  It knows no bar position: press *Shift beat 1* until the bass lands
+  on "one" (after four presses it also tries the offbeat ticks).
 - Latency follows your audio setup: notes are triggered on the predicted
   beat, but there is no latency compensation yet (#16).
 

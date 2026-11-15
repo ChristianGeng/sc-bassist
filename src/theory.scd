@@ -179,6 +179,31 @@
 		notes.asArray
 	},
 
+	// BeatTrack often locks at double or half tempo. Fold its ticks like
+	// the displayed tempo: every = play on every n-th tick, perTick =
+	// beats per tick, dur = the folded beat period in seconds.
+	tickPlan: { |self, bps|
+		var raw = bps * 60, folded = self.foldBpm(raw) ? raw, ratio = folded / raw;
+		(every: (1 / ratio).round.asInteger.max(1), perTick: ratio.round.asInteger.max(1),
+			dur: 60 / folded)
+	},
+
+	// Follow mode without a locked beat tracker: should the internal clock
+	// play a beat now? Only when no beat was detected for 1.5 periods,
+	// the input is not below the gate, and a beat is due one period after
+	// the last beat from either source (so the phases never double up).
+	freeRunDue: { |self, now, lastBeat, lastDetected, period, energy, gate|
+		((now - lastDetected) > (period * 1.5))
+		and: { energy >= gate }
+		and: { (now - lastBeat) >= (period - 0.005) }
+	},
+
+	// A detected tick right after a free-running beat replaces it
+	// (true = skip playing this tick, the beat was already played).
+	skipDetected: { |self, now, lastBeat, lastWasFree, period|
+		lastWasFree and: { (now - lastBeat) < (period * 0.5) }
+	},
+
 	// Rule-based style suggestion from the source's feel.
 	// f: (energy: 0..1, onsetRate: per second, brightness: 0..1)
 	suggestStyle: { |self, f|

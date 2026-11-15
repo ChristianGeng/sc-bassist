@@ -84,6 +84,34 @@ chroma = { |pcs, weight = 1| (0 ! 12).collect { |v, i| if(pcs.includes(i)) { wei
 	~t.ok(all.asSet.size > 5, "runs use many notes");
 });
 
+~t.check(\tickPlan, {
+	var p = th.tickPlan(208 / 60);
+	~t.eq([p[\every], p[\perTick]], [2, 1], "double-tempo lock: play every second tick");
+	~t.ok((p[\dur] - (60 / 104)).abs < 1e-6, "double-tempo lock: beat period of 104 BPM");
+	p = th.tickPlan(52 / 60);
+	~t.eq([p[\every], p[\perTick]], [1, 2], "half-tempo lock: two beats per tick");
+	p = th.tickPlan(120 / 60);
+	~t.eq([p[\every], p[\perTick]], [1, 1], "in range: one beat per tick");
+});
+
+~t.check(\freeRun, {
+	// now, lastBeat, lastDetected, period, energy, gate
+	~t.eq(th.freeRunDue(10, 9.5, 9.5, 0.5, 0.5, 0.05), false, "tracker locked: no free-running beat");
+	~t.eq(th.freeRunDue(10, 9.5, 8.0, 0.5, 0.5, 0.05), true, "tracker stale and beat due: play");
+	~t.eq(th.freeRunDue(10, 9.8, 8.0, 0.5, 0.5, 0.05), false, "beat not due yet: wait (no doubles)");
+	~t.eq(th.freeRunDue(10, 9.0, 8.0, 0.5, 0.01, 0.05), false, "input below gate: silent");
+	~t.eq(th.freeRunDue(10, 9.0, 8.0, 0.5, 0.0, 0), true, "gate 0 never gates");
+	// 190 BPM detection: the period stays 60/190, not the folded 95 BPM
+	~sb.state[\detectedDur] = 60 / 190;
+	~t.eq(~sb.freeRunPeriod, 60 / 190, "free-running uses the detected period");
+	~sb.state[\detectedDur] = nil;
+	~t.eq(~sb.freeRunPeriod, 60 / ~sb.getParam(\bpm), "no detection yet: manual BPM");
+	// now, lastBeat, lastWasFree, period
+	~t.eq(th.skipDetected(10, 9.9, true, 0.5), true, "detected tick right after a free beat replaces it");
+	~t.eq(th.skipDetected(10, 9.6, true, 0.5), false, "detected tick half a beat later plays");
+	~t.eq(th.skipDetected(10, 9.9, false, 0.5), false, "detected ticks never skip each other");
+});
+
 ~t.check(\suggestStyle, {
 	~t.eq(th.suggestStyle((energy: 0.05, onsetRate: 0, brightness: 0)), \drone, "quiet -> drone");
 	~t.eq(th.suggestStyle((energy: 0.5, onsetRate: 0.5, brightness: 0.2)), \sparse, "few onsets -> sparse");
@@ -120,6 +148,8 @@ chroma = { |pcs, weight = 1| (0 ! 12).collect { |v, i| if(pcs.includes(i)) { wei
 	~t.ok(~sb.currentStyle.notNil, "surprise picks a style");
 	~sb.shiftDownbeat;
 	~t.eq(~sb.barShift, 1, "downbeat shift");
+	3.do { ~sb.shiftDownbeat };
+	~t.eq([~sb.barShift, ~sb.tickPhase], [0, 1], "four shifts move to the other tick");
 });
 
 ~t.check(\tap, {
