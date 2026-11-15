@@ -2,8 +2,9 @@
 # Route an application's audio (e.g. the browser playing YouTube) into
 # sc-bassist's input, using PipeWire's pw-link. sc-bassist must be running.
 #
-#   scripts/route-app.sh firefox             app -> SuperCollider (you still hear the app directly)
-#   scripts/route-app.sh firefox --through   also unlink the app from your speakers/headphones:
+#   scripts/route-app.sh chrome              app -> SuperCollider (you still hear the app directly)
+#                                            (any part of the name, any case: chrome, firefox, mpv, vlc)
+#   scripts/route-app.sh chrome --through    also unlink the app from your speakers/headphones:
 #                                            you hear it only through sc-bassist's mixer
 #                                            (raise "source" in the Mixer section)
 #   scripts/route-app.sh --list              list output ports to pick a pattern

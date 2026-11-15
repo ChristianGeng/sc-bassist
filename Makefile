@@ -3,7 +3,7 @@
 help:
 	@echo "make install-sc  install SuperCollider without root (~/.local/opt/supercollider)"
 	@echo "make run         start with the demo groove"
-	@echo "make live        start on the audio input (then: scripts/route-app.sh firefox)"
+	@echo "make live        start on the audio input (then: scripts/route-app.sh chrome|firefox|mpv)"
 	@echo "make test        compile, unit, ui and integration tests (silent)"
 	@echo "make lint        shellcheck"
 

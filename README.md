@@ -41,12 +41,16 @@ No sc3-plugins are needed: everything uses core UGens.
 
 1. `./run.sh --live`
 2. Play the video in the browser.
-3. Link the browser's audio into sc-bassist:
+3. Link the browser's audio into sc-bassist
+   (any part of the app's name works, upper/lower case does not matter):
 
    ```bash
-   scripts/route-app.sh firefox             # or chromium, chrome, ...
+   scripts/route-app.sh chrome              # Google Chrome / Chromium
+   scripts/route-app.sh firefox             # Firefox
    scripts/route-app.sh --list              # if you are unsure of the name
    ```
+
+   The browser only shows up while it is playing: start the video first.
 
    You hear the video as before, plus the bass from sc-bassist.
    Use the **Mixer** (bass, drone, master) to balance them.
@@ -54,7 +58,7 @@ No sc3-plugins are needed: everything uses core UGens.
 4. Want the whole mix under sc-bassist's control?
 
    ```bash
-   scripts/route-app.sh firefox --through
+   scripts/route-app.sh chrome --through
    ```
 
    This unlinks the browser from your headphones,
@@ -62,6 +66,14 @@ No sc3-plugins are needed: everything uses core UGens.
    turn **source** up in the Mixer.
    The browser goes back to normal when you restart playback
    (or relink it in qpwgraph/helvum).
+
+### Local playback
+
+- Let sc-bassist play the file itself (no routing, the **source** fader
+  controls the track): `./run.sh --file ~/Music/song.mp3`,
+  or **Open file…** in the window. Any format ffmpeg reads; it loops.
+- Or keep your usual player and link it like the browser:
+  `scripts/route-app.sh mpv` (or `vlc`, `rhythmbox`, …).
 
 ### Music without bass
 
