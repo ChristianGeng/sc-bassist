@@ -85,7 +85,7 @@
 			} {
 				period = self.freeRunPeriod;
 				if(self.theory.freeRunDue(now, st[\lastBeat], st[\lastDetected], period,
-					st[\energy], self.getParam(\gate))) {
+					st[\energy], self.getParam(\gate), st[\tickPeriod])) {
 					st[\lastWasFree] = true;
 					self.onBeat(period);
 				};

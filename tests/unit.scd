@@ -101,6 +101,11 @@ chroma = { |pcs, weight = 1| (0 ! 12).collect { |v, i| if(pcs.includes(i)) { wei
 	~t.eq(th.freeRunDue(10, 9.8, 8.0, 0.5, 0.5, 0.05), false, "beat not due yet: wait (no doubles)");
 	~t.eq(th.freeRunDue(10, 9.0, 8.0, 0.5, 0.01, 0.05), false, "input below gate: silent");
 	~t.eq(th.freeRunDue(10, 9.0, 8.0, 0.5, 0.0, 0), true, "gate 0 never gates");
+	// quarter-tempo tick every 2 s fills its own beats: no free run before 3 s
+	~t.eq(th.freeRunDue(10, 9.5, 8.0, 0.5, 0.5, 0.05, 2.0), false,
+		"slow ticks still fill in: free-running waits 1.5 tick periods");
+	~t.eq(th.freeRunDue(11.5, 11.0, 8.0, 0.5, 0.5, 0.05, 2.0), true,
+		"free-running after 1.5 tick periods without a tick");
 	// 190 BPM detection: the period stays 60/190, not the folded 95 BPM
 	~sb.state[\detectedDur] = 60 / 190;
 	~t.eq(~sb.freeRunPeriod, 60 / 190, "free-running uses the detected period");

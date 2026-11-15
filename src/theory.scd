@@ -189,11 +189,12 @@
 	},
 
 	// Follow mode without a locked beat tracker: should the internal clock
-	// play a beat now? Only when no beat was detected for 1.5 periods,
-	// the input is not below the gate, and a beat is due one period after
-	// the last beat from either source (so the phases never double up).
-	freeRunDue: { |self, now, lastBeat, lastDetected, period, energy, gate|
-		((now - lastDetected) > (period * 1.5))
+	// play a beat now? Only when no tick was detected for 1.5 tick periods
+	// (a half/quarter-tempo tick fills in its own beats until then), the
+	// input is not below the gate, and a beat is due one period after the
+	// last beat from either source (so the phases never double up).
+	freeRunDue: { |self, now, lastBeat, lastDetected, period, energy, gate, tickPeriod|
+		((now - lastDetected) > ((tickPeriod ? period).max(period) * 1.5))
 		and: { energy >= gate }
 		and: { (now - lastBeat) >= (period - 0.005) }
 	},

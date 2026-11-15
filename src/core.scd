@@ -12,7 +12,7 @@
 ~sb.sections = List[];
 ~sb.state = (
 	bpm: 0, beatDur: 0.6, beats: 0, beatInBar: 0, lastBeat: 0, lastDetected: 0,
-	detectedDur: nil, lastWasFree: false, beatTimes: List[], ticks: 0,
+	detectedDur: nil, tickPeriod: nil, lastWasFree: false, beatTimes: List[], ticks: 0,
 	keyIndex: nil, chord: nil, chordSt: nil, chroma: 0 ! 12,
 	amp: 0, energy: 0, onsetTimes: List[], onsetRate: 0, brightness: 0, flatness: 0,
 	styleSt: nil, suggested: nil, notes: 0, lastMidi: nil,

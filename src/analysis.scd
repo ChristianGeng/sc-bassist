@@ -71,6 +71,7 @@
 		onTick = ((st[\ticks] + self.tickPhase) % plan[\every]) == 0;
 		st[\lastDetected] = now;
 		st[\detectedDur] = plan[\dur];
+		st[\tickPeriod] = 1 / bps;
 		if(self.getParam(\sync) == 0 and: { onTick }) {
 			skip = self.theory.skipDetected(now, st[\lastBeat], st[\lastWasFree] == true, plan[\dur]);
 			st[\bpm] = 60 / plan[\dur];
