@@ -14,7 +14,9 @@ usage() { sed -n '2,6p' "$0" | sed 's/^# \{0,1\}//'; }
 while [[ $# -gt 0 ]]; do
 	case "$1" in
 		--live) export SB_SOURCE=live; shift ;;
-		--file) SB_FILE="$(realpath "$2")"; export SB_FILE; shift 2 ;;
+		--file)
+			[[ $# -ge 2 ]] || { echo "--file needs a path" >&2; usage >&2; exit 2; }
+			SB_FILE="$(realpath "$2")"; export SB_FILE; shift 2 ;;
 		--nogui) export SB_NOGUI=1; shift ;;
 		-h|--help) usage; exit 0 ;;
 		*) echo "unknown argument: $1" >&2; usage >&2; exit 2 ;;

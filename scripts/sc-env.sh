@@ -6,6 +6,7 @@
 # first on the library path, so scsynth talks to PipeWire (same effect
 # as pw-jack, which cannot be combined with our own LD_LIBRARY_PATH).
 
+# shellcheck disable=SC2034 # SCLANG is used by the scripts that source this
 SC_PREFIX="${SC_PREFIX:-$HOME/.local/opt/supercollider}"
 PW_JACK_DIR=""
 for d in /usr/lib/*/pipewire-0.3/jack /usr/lib/pipewire-0.3/jack; do
@@ -32,4 +33,4 @@ else
 	echo "or install it system-wide: sudo apt install supercollider" >&2
 	exit 1
 fi
-export SCLANG
+# SCLANG is an array: callers source this file, it cannot be exported

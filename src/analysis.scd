@@ -79,5 +79,6 @@
 	OSCdef(\sb_beat, { |msg| sb.onBeatDetected(msg[3]) }, '/sb/beat');
 	OSCdef(\sb_onset, { |msg| sb.state[\onsetTimes].add(Main.elapsedTime) }, '/sb/onset');
 	sb.anaSynth = Synth(\sb_analyser,
-		[in: sb.buses[\src]] ++ sb.synthArgs(\Analysis), sb.grp[\ana]);
+		[in: sb.buses[\src], tempoLock: sb.getParam(\tempoLock),
+			onsetThresh: sb.getParam(\onsetThresh)], sb.grp[\ana]);
 }]);

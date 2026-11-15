@@ -44,8 +44,8 @@ done < <(pw-link -l | awk '
 	port != "" && /^ +\|<- / {sub(/^ +\|<- /, ""); print $0 "\t" port; next}
 	{port = ""}')
 
-pw-link "$left" SuperCollider:in_1
-pw-link "$right" SuperCollider:in_2
+pw-link "$left" SuperCollider:in_1 || echo "could not link $left (already linked?)" >&2
+pw-link "$right" SuperCollider:in_2 || echo "could not link $right (already linked?)" >&2
 echo "linked $left -> SuperCollider:in_1, $right -> SuperCollider:in_2"
 
 if [[ "$through" == --through ]]; then

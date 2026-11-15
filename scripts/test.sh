@@ -22,6 +22,11 @@ run_sclang() { # name file timeout
 	local name="$1" file="$2" limit="$3" code=0
 	echo "=== $name"
 	timeout "$limit" "${SCLANG[@]}" "$file" >"$OUT/$name.log" 2>&1 || code=$?
+	# an error before ~t.finish must not count as a pass
+	if [[ $code -eq 0 ]] && ! grep -q "^$name: [0-9]* passed, 0 failed" "$OUT/$name.log"; then
+		echo "--- $name: no summary line, the suite did not finish"
+		code=1
+	fi
 	# sclang's own noise is in the log; show test lines and errors
 	grep -E '^(FAIL|ERROR|ok |  - |unit:|ui:|integration:|compile:)|ERROR:|WARNING: sb' "$OUT/$name.log" || true
 	if [[ $code -ne 0 ]]; then

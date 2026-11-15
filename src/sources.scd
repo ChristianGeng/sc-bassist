@@ -51,7 +51,8 @@
 		Out.ar(out, (sig ! 2 + pad.sum + (stab ! 2)) * inGain.lag(0.05) * 0.5);
 	}).add;
 	SynthDef(\sb_monitor, { |in, out = 0, srcLevel = 1, master = 0.8|
-		Out.ar(out, In.ar(in, 2) * srcLevel.lag(0.05) * master.lag(0.05));
+		// in gain x source x master can reach ~9x: limit like the bass path
+		Out.ar(out, Limiter.ar(In.ar(in, 2) * srcLevel.lag(0.05) * master.lag(0.05), 0.95, 0.01));
 	}).add;
 });
 
